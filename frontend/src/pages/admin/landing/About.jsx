@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   RiBankLine,
   RiMapPinLine,
@@ -15,59 +15,123 @@ import {
   RiDeleteBin6Line,
 } from "react-icons/ri";
 
-export default function AdminAbout() {
-  const [activeTab, setActiveTab] = useState("editor"); // 'editor' | 'preview'
-  const [isSaved, setIsSaved] = useState(false);
+// Import your API service methods
+import {
+  getUpperAbout,
+  updateUpperAbout,
+  getMiddleAbout,
+  updateMiddleAbout,
+  getLowAboutPart,
+  updateLowAboutPart,
+} from "../../../features/Landing/api"; // Adjust path as needed
 
-  // Form State initialized with your current About section data
+export default function About() {
+  const [activeTab, setActiveTab] = useState("editor"); // 'editor' | 'preview'
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Form State structured to match backend models exactly
   const [aboutData, setAboutData] = useState({
-    badgeText: "About Our Institution",
-    schoolName: "Shree Siddhababa Secondary School",
-    location: "Pokhara, Gandaki Province, Nepal",
-    schoolCode: "SSSS-38012",
-    affiliation: "NEB / Govt. Accredited",
-    estYear: "2046 BS",
-    overview:
-      "Shree Siddhababa Secondary School is a premier educational institution committed to academic excellence, technological skill advancement, and value-based learning. Serving students from Class 1 through Class 12, we bridge traditional education with modern practical streams including Computer Engineering and Hotel Management.",
-    imageFile: null, // Stores actual File object for API upload
-    imagePreview:
-      "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80", // Holds blob URL or default image
-    imageTagline: "Campus Life",
-    imageHeading: "Nurturing Tomorrow's Leaders",
-    heading: "Empowering Minds, Shaping Futures",
-    subheading:
-      "Our vision is to cultivate an engaging learning environment where students excel academically, develop critical problem-solving capabilities, and grow into responsible global citizens.",
-    highlights: [
-      {
-        title: "Quality Accreditation",
-        desc: "Fully government-recognized with high NEB academic standards.",
-      },
-      {
-        title: "Safe & Disciplined",
-        desc: "Inclusive campus environment fostering mutual respect and values.",
-      },
-      {
-        title: "Experienced Faculty",
-        desc: "Dedicated teachers and mentors driving student success.",
-      },
-      {
-        title: "Practical Learning",
-        desc: "Hands-on tech, science, and hotel management practical labs.",
-      },
+    // Upper Part
+    badgeText: "",
+    schoolName: "",
+    location: "",
+    schoolCode: "",
+    affiliation: "",
+    estYear: "",
+    overviewText: "",
+
+    // Middle Part
+    imageFile: null,
+    imagePreview: "",
+    imageTagLine: "",
+    imageCardTitle: "",
+    visionHeading: "",
+    visionSubHeading: "",
+
+    // Lower Part
+    card: [
+      { title: "", description: "" },
+      { title: "", description: "" },
+      { title: "", description: "" },
+      { title: "", description: "" },
     ],
   });
+
+  // Fetch initial data for Upper, Middle, and Lower sections on mount
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        setErrorMessage("");
+
+        const [upperRes, middleRes, lowerRes] = await Promise.allSettled([
+          getUpperAbout(),
+          getMiddleAbout(),
+          getLowAboutPart(),
+        ]);
+
+        let updatedState = { ...aboutData };
+
+        if (upperRes.status === "fulfilled" && upperRes.value?.upperAbout) {
+          const upper = upperRes.value.upperAbout;
+          updatedState = {
+            ...updatedState,
+            badgeText: upper.badgeText || "",
+            schoolName: upper.schoolName || "",
+            location: upper.location || "",
+            schoolCode: upper.schoolCode || "",
+            affiliation: upper.affiliation || "",
+            estYear: upper.estYear || "",
+            overviewText: upper.overviewText || "",
+          };
+        }
+
+        if (middleRes.status === "fulfilled" && middleRes.value?.upperAbout) {
+          // Note: Backend response uses 'upperAbout' key for middle part in controller
+          const middle = middleRes.value.upperAbout;
+          const backendBaseUrl = "http://localhost:5000/"; // Adjust API backend host if needed
+          updatedState = {
+            ...updatedState,
+            imageTagLine: middle.imageTagLine || "",
+            imageCardTitle: middle.imageCardTitle || "",
+            visionHeading: middle.visionHeading || "",
+            visionSubHeading: middle.visionSubHeading || "",
+            imagePreview: middle.campusBanner ? `${backendBaseUrl}${middle.campusBanner}` : "",
+          };
+        }
+
+        if (lowerRes.status === "fulfilled" && lowerRes.value?.card) {
+          const lower = lowerRes.value.card;
+          updatedState = {
+            ...updatedState,
+            card: Array.isArray(lower.card) ? lower.card : updatedState.card,
+          };
+        }
+
+        setAboutData(updatedState);
+      } catch (err) {
+        setErrorMessage("Failed to load section data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setAboutData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleHighlightChange = (index, field, value) => {
-    const updated = [...aboutData.highlights];
-    updated[index][field] = value;
-    setAboutData((prev) => ({ ...prev, highlights: updated }));
+    const updatedCards = [...aboutData.card];
+    updatedCards[index] = { ...updatedCards[index], [field]: value };
+    setAboutData((prev) => ({ ...prev, card: updatedCards }));
   };
 
-  // Handler for file selection via File Picker or Drag-and-Drop
   const handleImageUpload = (file) => {
     if (file && file.type.startsWith("image/")) {
       const previewUrl = URL.createObjectURL(file);
@@ -87,20 +151,63 @@ export default function AdminAbout() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Insert FormData / API call here to send aboutData + aboutData.imageFile to backend
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setSaving(true);
+    setErrorMessage("");
+
+    try {
+      // 1. Update Upper Part
+      const upperPayload = {
+        badgeText: aboutData.badgeText,
+        schoolName: aboutData.schoolName,
+        location: aboutData.location,
+        schoolCode: aboutData.schoolCode,
+        affiliation: aboutData.affiliation,
+        estYear: aboutData.estYear,
+        overviewText: aboutData.overviewText,
+      };
+      await updateUpperAbout(upperPayload);
+
+      // 2. Update Middle Part (via FormData for File support)
+      const middleFormData = new FormData();
+      if (aboutData.imageFile) {
+        middleFormData.append("campusBanner", aboutData.imageFile);
+      }
+      middleFormData.append("imageTagLine", aboutData.imageTagLine);
+      middleFormData.append("imageCardTitle", aboutData.imageCardTitle);
+      middleFormData.append("visionHeading", aboutData.visionHeading);
+      middleFormData.append("visionSubHeading", aboutData.visionSubHeading);
+
+      await updateMiddleAbout(middleFormData);
+
+      // 3. Update Lower Part
+      await updateLowAboutPart({ card: aboutData.card });
+
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err) {
+      console.error("Save Error:", err);
+      setErrorMessage(err?.response?.data?.message || "Failed to update changes. Please verify all inputs.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Fixed icons mapped to indices for preview rendering
   const highlightIcons = [
-    <RiAwardLine className="w-5 h-5 text-amber-400" />,
-    <RiShieldCheckLine className="w-5 h-5 text-amber-400" />,
-    <RiGroupLine className="w-5 h-5 text-amber-400" />,
-    <RiBookOpenLine className="w-5 h-5 text-amber-400" />,
+    <RiAwardLine className="w-5 h-5 text-amber-400" key="1" />,
+    <RiShieldCheckLine className="w-5 h-5 text-amber-400" key="2" />,
+    <RiGroupLine className="w-5 h-5 text-amber-400" key="3" />,
+    <RiBookOpenLine className="w-5 h-5 text-amber-400" key="4" />,
   ];
+
+  if (loading) {
+    return (
+      <div className="p-12 text-center text-slate-500 font-semibold text-sm">
+        Loading about section settings...
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -114,9 +221,9 @@ export default function AdminAbout() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Editor/Preview Switcher */}
           <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200 text-xs font-semibold">
             <button
+              type="button"
               onClick={() => setActiveTab("editor")}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "editor"
@@ -128,6 +235,7 @@ export default function AdminAbout() {
               <span>Editor</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("preview")}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "preview"
@@ -140,23 +248,30 @@ export default function AdminAbout() {
             </button>
           </div>
 
-          {/* Save Button */}
           <button
+            type="button"
             onClick={handleSubmit}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
           >
             {isSaved ? <RiCheckDoubleLine className="w-4 h-4" /> : <RiSave3Line className="w-4 h-4" />}
-            <span>{isSaved ? "Saved!" : "Save Changes"}</span>
+            <span>{saving ? "Saving..." : isSaved ? "Saved!" : "Save Changes"}</span>
           </button>
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl font-medium">
+          {errorMessage}
+        </div>
+      )}
 
       {/* VIEW 1: EDITOR FORM */}
       {activeTab === "editor" && (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Header & Meta Badges Panel */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider text-amber-600">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-amber-600">
               1. Basic Information & Badges
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -239,16 +354,16 @@ export default function AdminAbout() {
               </label>
               <textarea
                 rows={3}
-                value={aboutData.overview}
-                onChange={(e) => handleInputChange("overview", e.target.value)}
+                value={aboutData.overviewText}
+                onChange={(e) => handleInputChange("overviewText", e.target.value)}
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
 
-          {/* Media & Content Panel with Drag & Drop Image Uploader */}
+          {/* Media & Vision Panel */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider text-amber-600">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-amber-600">
               2. Campus Banner & Vision
             </h2>
 
@@ -257,7 +372,6 @@ export default function AdminAbout() {
                 Campus Banner Image
               </label>
 
-              {/* Custom Image Upload Zone */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 <div className="md:col-span-8">
                   <label
@@ -290,7 +404,6 @@ export default function AdminAbout() {
                   </label>
                 </div>
 
-                {/* Thumbnail Preview Box */}
                 <div className="md:col-span-4">
                   {aboutData.imagePreview ? (
                     <div className="relative h-36 rounded-xl overflow-hidden border border-slate-200 group bg-slate-900">
@@ -326,8 +439,8 @@ export default function AdminAbout() {
                 </label>
                 <input
                   type="text"
-                  value={aboutData.imageTagline}
-                  onChange={(e) => handleInputChange("imageTagline", e.target.value)}
+                  value={aboutData.imageTagLine}
+                  onChange={(e) => handleInputChange("imageTagLine", e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -338,8 +451,8 @@ export default function AdminAbout() {
                 </label>
                 <input
                   type="text"
-                  value={aboutData.imageHeading}
-                  onChange={(e) => handleInputChange("imageHeading", e.target.value)}
+                  value={aboutData.imageCardTitle}
+                  onChange={(e) => handleInputChange("imageCardTitle", e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -350,8 +463,8 @@ export default function AdminAbout() {
                 </label>
                 <input
                   type="text"
-                  value={aboutData.heading}
-                  onChange={(e) => handleInputChange("heading", e.target.value)}
+                  value={aboutData.visionHeading}
+                  onChange={(e) => handleInputChange("visionHeading", e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -363,8 +476,8 @@ export default function AdminAbout() {
               </label>
               <textarea
                 rows={2}
-                value={aboutData.subheading}
-                onChange={(e) => handleInputChange("subheading", e.target.value)}
+                value={aboutData.visionSubHeading}
+                onChange={(e) => handleInputChange("visionSubHeading", e.target.value)}
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -372,11 +485,11 @@ export default function AdminAbout() {
 
           {/* Highlights Editor */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider text-amber-600">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-amber-600">
               3. Core Highlights (4 Cards)
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {aboutData.highlights.map((item, idx) => (
+              {aboutData.card.map((item, idx) => (
                 <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Card #{idx + 1}
@@ -385,7 +498,7 @@ export default function AdminAbout() {
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Title</label>
                     <input
                       type="text"
-                      value={item.title}
+                      value={item.title || ""}
                       onChange={(e) => handleHighlightChange(idx, "title", e.target.value)}
                       className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 bg-white"
                     />
@@ -394,8 +507,8 @@ export default function AdminAbout() {
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Description</label>
                     <input
                       type="text"
-                      value={item.desc}
-                      onChange={(e) => handleHighlightChange(idx, "desc", e.target.value)}
+                      value={item.description || ""}
+                      onChange={(e) => handleHighlightChange(idx, "description", e.target.value)}
                       className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 bg-white"
                     />
                   </div>
@@ -414,7 +527,6 @@ export default function AdminAbout() {
             <span className="text-amber-400">Live Render</span>
           </div>
 
-          {/* RENDER OF YOUR ABOUT SECTION USING UPLOADED PREVIEW IMAGE */}
           <section className="relative py-16 bg-slate-900 text-slate-100 overflow-hidden">
             <div className="absolute top-0 left-1/4 w-[500px] h-[300px] bg-amber-500/10 blur-[130px] rounded-full pointer-events-none" />
             <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
@@ -425,14 +537,14 @@ export default function AdminAbout() {
                   <div className="space-y-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold tracking-widest uppercase">
                       <RiBankLine className="w-3.5 h-3.5" />
-                      <span>{aboutData.badgeText}</span>
+                      <span>{aboutData.badgeText || "About Our Institution"}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {aboutData.schoolName}
+                      {aboutData.schoolName || "School Name"}
                     </h1>
                     <p className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400 font-medium">
                       <RiMapPinLine className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span>{aboutData.location}</span>
+                      <span>{aboutData.location || "Location"}</span>
                     </p>
                   </div>
 
@@ -442,7 +554,7 @@ export default function AdminAbout() {
                         School Code / ID
                       </p>
                       <p className="text-xs font-bold text-amber-400 font-mono">
-                        {aboutData.schoolCode}
+                        {aboutData.schoolCode || "N/A"}
                       </p>
                     </div>
 
@@ -451,7 +563,7 @@ export default function AdminAbout() {
                         Affiliation
                       </p>
                       <p className="text-xs font-bold text-slate-200">
-                        {aboutData.affiliation}
+                        {aboutData.affiliation || "N/A"}
                       </p>
                     </div>
 
@@ -460,14 +572,14 @@ export default function AdminAbout() {
                         Est. Year
                       </p>
                       <p className="text-xs font-bold text-amber-300">
-                        {aboutData.estYear}
+                        {aboutData.estYear || "N/A"}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-4xl">
-                  {aboutData.overview}
+                  {aboutData.overviewText || "No overview provided."}
                 </p>
               </div>
 
@@ -488,10 +600,10 @@ export default function AdminAbout() {
 
                   <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
                     <span className="px-3 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-500/30 text-amber-300 text-[10px] font-semibold uppercase tracking-wider">
-                      {aboutData.imageTagline}
+                      {aboutData.imageTagLine || "Campus Life"}
                     </span>
                     <h3 className="text-lg font-bold text-white">
-                      {aboutData.imageHeading}
+                      {aboutData.imageCardTitle || "Building Future Leaders"}
                     </h3>
                   </div>
                 </div>
@@ -499,15 +611,15 @@ export default function AdminAbout() {
                 <div className="lg:col-span-7 space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {aboutData.heading}
+                      {aboutData.visionHeading || "Our Vision"}
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                      {aboutData.subheading}
+                      {aboutData.visionSubHeading || "No vision statement available."}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    {aboutData.highlights.map((item, idx) => (
+                    {aboutData.card.map((item, idx) => (
                       <div
                         key={idx}
                         className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/80 flex items-start gap-3 hover:border-amber-500/50 transition-colors"
@@ -517,10 +629,10 @@ export default function AdminAbout() {
                         </div>
                         <div className="space-y-0.5">
                           <h4 className="text-xs font-bold text-slate-100">
-                            {item.title}
+                            {item.title || `Highlight ${idx + 1}`}
                           </h4>
                           <p className="text-[11px] text-slate-400 leading-normal">
-                            {item.desc}
+                            {item.description || "Description pending..."}
                           </p>
                         </div>
                       </div>

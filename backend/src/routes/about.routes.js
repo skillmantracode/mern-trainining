@@ -1,26 +1,32 @@
 import express from "express";
+import upload from "../config/multer.js";
 import {
+  createLowAboutPart,
   createMiddleAbout,
   createUpperAbout,
+  getLowAboutPart,
   getMiddleAbout,
   getUpperAbout,
+  updateLowAboutPart,
   updateMiddleAbout,
   updateUpperAbout,
 } from "../controllers/about.controller.js";
+
 const router = express.Router();
 
-//upper part
-router.post("/", createUpperAbout);
+// Upper Part
+router.post("/upper", createUpperAbout);
+router.get("/upper", getUpperAbout);
+router.patch("/upper", updateUpperAbout);
 
-router.get("/", getUpperAbout);
+// Middle Part
+router.post("/middle", upload.single("image"), createMiddleAbout);
+router.get("/middle", getMiddleAbout);
+router.patch("/middle", upload.single("campusBanner"), updateMiddleAbout); 
 
-router.patch("/", updateUpperAbout);
-
-//middle part
-router.post("/", createMiddleAbout);
-
-router.get("/", getMiddleAbout);
-
-router.patch("/", updateMiddleAbout);
+// Lower Part
+router.post("/lower", createLowAboutPart);
+router.get("/lower", getLowAboutPart);
+router.patch("/lower", updateLowAboutPart);
 
 export default router;

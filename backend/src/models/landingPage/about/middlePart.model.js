@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const middlePartAboutSchema = new mongoose.Schema({
-  campustPic: {
+  campusBanner: {
     type: String,
     required: true,
   },
-  imageTagline: {
+  imageTagLine: {
     type: String,
     required: true,
   },
