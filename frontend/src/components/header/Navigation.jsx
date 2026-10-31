@@ -11,7 +11,9 @@ import {
   RiMenu3Line,
   RiCloseLine,
   RiArrowRightUpLine,
+  RiDashboard3Line 
 } from "react-icons/ri";
+
 import { useAuth } from "../../context/AuthContext";
 
 function Navigation() {
@@ -86,13 +88,7 @@ function Navigation() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4 relative">
-          <Link
-            to="/enquiry"
-            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-5 py-2.5 rounded-full shadow-sm transition-all"
-          >
-            Start an enquiry
-            <RiArrowRightUpLine className="text-base" />
-          </Link>
+         
 
           {!isLoggedin ? (
             <Link
@@ -125,6 +121,13 @@ function Navigation() {
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
               >
                 <RiUser3Line /> Profile
+              </Link>
+                 <Link
+                to="/admin"
+                onClick={handleLoginToggle}
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer"
+              >
+                <RiDashboard3Line  /> Dashboard
               </Link>
 
               <button className="w-full flex items-center gap-2.5 px-4 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer">

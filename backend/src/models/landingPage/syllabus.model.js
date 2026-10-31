@@ -1,27 +1,54 @@
+
 import mongoose from "mongoose";
 
-const syllabusSchema=new mongoose.Schema({
-  syllabusTitle:{
-    type:String,
-    required:true
-  },
-   gradeLevel:{
-    type:String,
-    required:true
-  },
-   program:{
-    type:String,
-    required:true
-  },
-   topic:{
-    type:String,
-    required:true
-  },
-   syllabusDoc:{
-    type:String,
-    required:true
-  },
-})
+const syllabusSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-const syllabusModel=mongoose.model("Syllabus",syllabusSchema)
-export default syllabusModel
+    grade: {
+      type: String,
+      required: true,
+      enum: Array.from(
+        { length: 12 },
+        (_, index) => `Class ${index + 1}`
+      ),
+    },
+
+    program: {
+      type: String,
+      required: true,
+      enum: [
+        "General",
+        "Hotel Management",
+        "Computer Engineering",
+      ],
+    },
+
+    subjects: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    pdfName: {
+      type: String,
+      default: "",
+    },
+
+    pdfUrl: {
+      type: String,
+      default: "",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Syllabus = mongoose.model("Syllabus", syllabusSchema);
+
+export default Syllabus;

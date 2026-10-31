@@ -20,6 +20,11 @@ import eventRoutes from "./routes/event.route.js"
 import noticeRoutes from "./routes/notice.routes.js"
 import DesignationRoutes from "./routes/Designation.routes.js"
 import DepartmentRoutes from "./routes/Department.routes.js"
+import AchievementRoutes from './routes/acheivement.routes.js'
+import HeroRoutes from './routes/hero.route.js'
+import FooterRoutes from './routes/footer.routes.js'
+import galleryRoutes from './routes/gallery.routes.js'
+import programRoutes from './routes/program.routes.js'
 
 
 const PORT = config.PORT;
@@ -39,13 +44,17 @@ app.use("/user", userRoute);
 app.use("/chooseReasons",chooseReasonRoutes)
 app.use("/welcome",WelcomeRoutes)
 app.use("/about",AboutRoutes)
-app.use("/notice",noticeRoutes)
+app.use("/notices",noticeRoutes)
 app.use("/program",programsRoutes)
 app.use("/event",eventRoutes)
 app.use("/department",DepartmentRoutes)
 app.use("/designation",DesignationRoutes)
 app.use("/syllabus",syllabusRoutes)
-
+app.use("/achievement",AchievementRoutes)
+app.use("/hero",HeroRoutes)
+app.use("/footer",FooterRoutes)
+app.use("/gallery", galleryRoutes)
+app.use("/programs",programRoutes)
 
 app.use(errorHandler);
 

@@ -31,6 +31,7 @@ import Toast from "./components/Toast";
 import TotalStaff from "./pages/admin/staff/TotalStaff";
 import UpdatedStudent from "./pages/admin/staff/UpdateStaff";
 import StaffDetails from "./pages/admin/staff/StaffDetails";
+import ProgramDetail from "./components/Program/ProgamDetail"
 
 function App() {
   return (
@@ -51,11 +52,12 @@ function App() {
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/program/:id" element={<ProgramDetail/>} />
           </Route>
 
           {/* Admin Routes */}
-          <Route element={<ProtectedRoutes/>}>
-            <Route path="/admin" element={<AdminLayout/>}>
+          <Route element={<ProtectedRoutes />}>
+            <Route path="/admin" element={<AdminLayout />}>
               <Route path="/admin/" element={<Dashboard />} />
               <Route
                 path="/admin/studentdetails"
@@ -68,6 +70,8 @@ function App() {
               />
               <Route path="/admin/about" element={<AdminAbout />} />
               <Route path="/admin/achievement" element={<AdminAchievement />} />
+              <Route path="/admin/hero" element={<HeroManagement />} />
+
               <Route
                 path="/admin/choose-reason"
                 element={<AdminWhyChooseUs />}
@@ -108,6 +112,10 @@ function App() {
               <Route
                 path="/admin/designation/"
                 element={<ManageDesignation />}
+              />
+               <Route
+                path="/admin/footer"
+                element={<Footer/>}
               />
               <Route
                 path="/admin/department/update/:id"
@@ -154,5 +162,7 @@ import UpdateDepartment from "./pages/admin/department/UpdateDepartment";
 import ManageDesignation from "./pages/admin/designation/ManageDesignation";
 import ManageDepartment from "./pages/admin/department/ManageDepartment";
 import { ProtectedRoutes } from "./routes/ProtectedRoutes";
+import HeroManagement from "./pages/admin/landing/HeroManagement";
+import Footer from "./pages/admin/landing/Footer";
 
 export default App;
