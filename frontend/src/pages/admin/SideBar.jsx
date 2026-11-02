@@ -12,6 +12,7 @@ import {
   RiGraduationCapLine,
   RiGroupLine,
   RiGalleryLine,
+  	RiSlideshowLine,
   RiBookOpenLine,
   RiNotification3Line,
   RiSettings4Line,
@@ -68,6 +69,13 @@ export default function SideBar() {
           link: "/admin/welcome-message",
           roles: ["principal", "admin"],
         },
+         {
+          id: "hero",
+          label: "Hero ",
+          icon: <	RiSlideshowLine />,
+          link: "/admin/hero",
+          roles: ["principal", "admin"],
+        },
         {
           id: "achievement",
           label: "Achievement",
@@ -109,6 +117,13 @@ export default function SideBar() {
           icon: <RiNotification3Line />,
           link: "/admin/notices",
           roles: ["principal", "admin", "accountant"],
+        },
+         {
+          id: "footer",
+          label: "Footer",
+          icon: <RiInformationLine />,
+          link: "/admin/footer",
+          roles: ["principal", "admin"],
         },
         {
           id: "syllabus",

@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import { getChooseReason, getReasonHeading } from "../../services/api";
+
 import {
   RiMedalLine,
   RiTeamLine,
@@ -10,92 +11,128 @@ import {
   RiGlobalLine,
 } from "react-icons/ri";
 
+// Backend icon identifier -> React icon component
+const ICON_MAP = {
+  medal: RiMedalLine,
+  team: RiTeamLine,
+  computer: RiComputerLine,
+  book: RiBook3Line,
+  shield: RiShieldCheckLine,
+  global: RiGlobalLine,
+};
+
 export default function WhyChooseUs() {
   const [features, setFeatures] = useState([]);
-  const [header, setHeader] = useState([]);
+  const [header, setHeader] = useState(null);
 
-  const loadHeader = async () => {
-    const data = await getReasonHeading();
-    setHeader(data.reasonHeading[0]);
-  };
-
-  const loadFeature = async () => {
-    const data = await getChooseReason();
-    setFeatures(data.reason);
-  };
+  // Fetch Section Heading and Features
   useEffect(() => {
-    loadFeature();
-    loadHeader();
+    const loadData = async () => {
+      try {
+        const [headingData, featureData] = await Promise.all([
+          getReasonHeading(),
+          getChooseReason(),
+        ]);
+
+        setHeader(headingData?.reasonHeading?.[0] || null);
+        setFeatures(featureData?.reason || []);
+      } catch (error) {
+        console.error("Failed to load Why Choose Us section:", error);
+      }
+    };
+
+    loadData();
   }, []);
 
   return (
-    <section className="relative py-24 bg-slate-50 text-slate-800 overflow-hidden">
-      {/* Soft Background Accents */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-100/40 blur-[130px] rounded-full pointer-events-none" />
+    <section className="relative overflow-hidden bg-slate-50 py-24 text-slate-800">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* Background Accent */}
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[350px] w-[800px] -translate-x-1/2 rounded-full bg-amber-100/40 blur-[130px]" />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-200/60 text-amber-800 text-xs font-semibold tracking-wide uppercase">
-            <span>{header?.tagBadgeText}</span>
+        <div className="mx-auto max-w-3xl space-y-4 text-center">
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/60 bg-amber-100/80 px-3.5 py-1 text-xs font-semibold uppercase tracking-wide text-amber-800">
+            {header?.tagBadgeText}
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             {header?.headingMainText}{" "}
-            <span className="text-amber-600">{header?.headingHighlight}</span>
+            <span className="text-amber-600">
+              {header?.headingHighlight}
+            </span>
           </h2>
 
-          {/* Gold Dot & Dividers */}
+          {/* Decorative Divider */}
           <div className="flex items-center justify-center gap-2 py-1">
-            <span className="w-12 h-[1px] bg-slate-200" />
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span className="w-12 h-[1px] bg-slate-200" />
+            <span className="h-px w-12 bg-slate-200" />
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            <span className="h-px w-12 bg-slate-200" />
           </div>
 
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-           {header?.description}
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
+            {header?.description}
           </p>
         </div>
 
-        {/* Feature Cards Grid */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((item, index) => (
-            <div
-              key={index}
-              className="group relative bg-white border border-slate-200/80 rounded-3xl p-8 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-slate-200/50 hover:border-amber-300 flex flex-col justify-between"
-            >
-              <div>
-                {/* Rounded Icon Box matching image design */}
-                <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center group-hover:bg-amber-50 group-hover:border-amber-200 transition-colors duration-300">
-                  {item.selectIcon}
+        {/* Feature Cards */}
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+          {features.map((item, index) => {
+
+            // Find the icon using the backend identifier
+            const Icon = ICON_MAP[item.selectIcon] || RiMedalLine;
+
+            return (
+              <div
+                key={item._id}
+                className="group relative flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-8 transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-300 hover:shadow-xl hover:shadow-slate-200/50"
+              >
+                <div>
+
+                  {/* Dynamic Icon */}
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200/60 bg-slate-100/80 transition-colors duration-300 group-hover:border-amber-200 group-hover:bg-amber-50">
+                    <Icon
+                      size={30}
+                      className="text-slate-700 transition-colors duration-300 group-hover:text-amber-600"
+                    />
+                  </div>
+
+                  {/* Feature Title */}
+                  <h3 className="mt-6 text-xl font-bold text-slate-900 transition-colors duration-200 group-hover:text-amber-600">
+                    {item.featureTitle}
+                  </h3>
+
+                  {/* Decorative Divider */}
+                  <div className="my-3 flex items-center gap-2">
+                    <span className="h-px w-6 bg-slate-200" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    <span className="h-px w-6 bg-slate-200" />
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm leading-relaxed text-slate-500">
+                    {item.description}
+                  </p>
                 </div>
 
-                {/* Content */}
-                <h3 className="mt-6 text-xl font-bold text-slate-900 group-hover:text-amber-600 transition-colors duration-200">
-                  {item.featureTitle}
-                </h3>
+                {/* Bottom Decorative Footer */}
+                <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-4 text-xs font-semibold text-slate-400 transition-colors group-hover:text-amber-600">
+                  <span>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
 
-                {/* Gold Dot Accent under title */}
-                <div className="flex items-center gap-2 my-3">
-                  <span className="w-6 h-[1px] bg-slate-200" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span className="w-6 h-[1px] bg-slate-200" />
+                  <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Learn more →
+                  </span>
                 </div>
-
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  {item.description}
-                </p>
               </div>
+            );
+          })}
 
-              {/* Bottom Decorative Footer */}
-              <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-400 group-hover:text-amber-600 transition-colors">
-                <span>0{index + 1}</span>
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  Learn more &rarr;
-                </span>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

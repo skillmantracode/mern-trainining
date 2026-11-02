@@ -2,6 +2,7 @@ import { RiSearchLine, RiAddLine } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { RiArrowLeftLine } from "react-icons/ri";
 
 // 1. Move static configuration outside the component
 const TOP_BAR_NAV = [
@@ -78,6 +79,13 @@ export default function TopBar() {
           </Link>
         ))}
       </div>
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all duration-200 hover:-translate-x-0.5 shadow-sm"
+      >
+        <RiArrowLeftLine className="text-base" />
+        <span>Back</span>
+      </Link>
     </>
   );
 }
