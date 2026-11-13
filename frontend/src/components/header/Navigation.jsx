@@ -93,7 +93,7 @@ function Navigation() {
           {!isLoggedin ? (
             <Link
               to="/login"
-              className="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl"
+              className="w-full py-2.5 p-4  text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl"
             >
               Login
             </Link>
@@ -203,7 +203,7 @@ function Navigation() {
             {!isLoggedin ? (
               <Link
                 to="/login"
-                className="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl"
+                className="w-full py-2.5 p-4 text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl"
               >
                 Login
               </Link>
